@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Student - OBU</title>
+</head>
+<body>
+
+    <h1>ODA BULTUM UNIVERSITY</h1>
+    <h2>EDIT STUDENT INFORMATION</h2>
+
+    <form action="students" method="post">
+
+        <input type="hidden" name="action" value="update">
+
+        <label>Student Number:</label><br>
+        <input type="text" name="student_number" required>
+        <br><br>
+
+        <label>New Full Name:</label><br>
+        <input type="text" name="full_name" required>
+        <br><br>
+
+        <label>New Department:</label><br>
+        <input type="text" name="department" required>
+        <br><br>
+
+        <label>New Year Level:</label><br>
+        <input type="number" name="year_level" min="1" required>
+        <br><br>
+
+        <button type="submit">Update Student</button>
+
+    </form>
+
+    <br>
+    <a href="students">Back to Students</a>
+
+</body>
+</html>

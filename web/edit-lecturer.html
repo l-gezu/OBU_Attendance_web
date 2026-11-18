@@ -1,0 +1,222 @@
+ <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Lecturer - OBU</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            color: #1e293b;
+        }
+
+        header {
+            background: linear-gradient(135deg, #123b65, #16804a);
+            color: white;
+            text-align: center;
+            padding: 25px 15px;
+        }
+
+        .logo {
+            width: 95px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        header h1 {
+            font-size: 25px;
+            margin: 8px;
+        }
+
+        header h2 {
+            font-size: 20px;
+            margin: 8px;
+        }
+
+        nav {
+            background: #123b65;
+            padding: 13px;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 0 12px;
+            display: inline-block;
+            padding: 5px;
+        }
+
+        nav a:hover {
+            color: #a7f3d0;
+        }
+
+        .container {
+            max-width: 550px;
+            margin: 35px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+        }
+
+        .container h3 {
+            text-align: center;
+            color: #123b65;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #123b65;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #16804a;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            background: #16804a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #116638;
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 22px;
+        }
+
+        .links a {
+            display: inline-block;
+            margin: 7px;
+            color: #123b65;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px 12px;
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 21px;
+            }
+
+            nav a {
+                margin: 4px 7px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <img src="images/obu-logo.png"
+             alt="OBU Logo"
+             class="logo">
+
+        <h1>ODA BULTUM UNIVERSITY</h1>
+        <h2>EDIT LECTURER INFORMATION</h2>
+    </header>
+
+    <nav>
+        <a href="admin-dashboard.html">Dashboard</a>
+        <a href="lecturers">Lecturers</a>
+        <a href="logout">Logout</a>
+    </nav>
+
+    <div class="container">
+
+        <h3>Update Lecturer Details</h3>
+
+        <form action="lecturers" method="post">
+
+            <input type="hidden" name="action" value="update">
+
+            <label>Lecturer ID:</label>
+            <input type="number"
+                   name="lecturer_id"
+                   min="1"
+                   required>
+ <label>New Full Name:</label>
+            <input type="text"
+                   name="full_name"
+                   maxlength="100"
+                   required>
+
+            <label>New Email:</label>
+            <input type="email"
+                   name="email"
+                   required>
+
+            <label>New Department:</label>
+            <input type="text"
+                   name="department"
+                   maxlength="100"
+                   required>
+
+            <button type="submit">Update Lecturer</button>
+
+        </form>
+
+        <div class="links">
+            <a href="lecturers">Back to Lecturers</a>
+            <br>
+            <a href="admin-dashboard.html">Back to Dashboard</a>
+        </div>
+
+    </div>
+
+    <footer>
+        OBU Attendance Management System<br>
+        Academic Year 2026
+    </footer>
+
+</body>
+</html>

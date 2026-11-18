@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Lecturer Dashboard - OBU</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f7;
+            margin: 0;
+        }
+
+        header {
+            background: linear-gradient(135deg, #123b65, #16804a);
+            color: white;
+            padding: 25px 15px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 100px;
+            height: auto;
+            display: block;
+            margin: 0 auto 12px;
+        }
+
+        header h1 {
+            margin: 10px 0;
+            font-size: 26px;
+        }
+
+        header h2 {
+            margin: 8px 0;
+            font-size: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px #ccc;
+            border-left: 5px solid #16804a;
+        }
+
+        .card h2,
+        .card h3 {
+            color: #123b65;
+        }
+
+        .card p {
+            color: #555;
+        }
+
+        a {
+            display: inline-block;
+            background: #123456;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            background: #16804a;
+        }
+
+        .logout {
+            background: #b22222;
+        }
+
+        .logout:hover {
+            background: #8b0000;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 21px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <img src="images/obu-logo.png"
+         alt="OBU University Logo"
+         class="logo">
+
+    <h1>ODA BULTUM UNIVERSITY</h1>
+    <h2>LECTURER DASHBOARD</h2>
+
+</header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>Welcome, Lecturer!</h2>
+        <p>Welcome to the OBU Attendance Management System.</p>
+    </div>
+
+    <div class="card">
+        <h3>Student Management</h3>
+        <p>View registered university students.</p>
+        <a href="students">View Students</a>
+    </div>
+
+    <div class="card">
+        <h3>Lecturer Information</h3>
+        <p>View lecturer information.</p>
+        <a href="lecturers">View Lecturers</a>
+    </div>
+
+    <div class="card">
+        <h3>Attendance Management</h3>
+        <p>Record student attendance.</p>
+        <a href="attendance">Take Attendance</a>
+    </div>
+
+    <div class="card">
+        <h3>Attendance Report</h3>
+        <p>View attendance records and reports.</p>
+        <a href="attendance-report">View Attendance Report</a>
+    </div>
+
+    <div class="card">
+        <h3>Account</h3>
+        <p>Logout securely from your account.</p>
+        <a href="logout" class="logout">Logout</a>
+    </div>
+
+</div>
+
+<footer>
+    OBU Attendance Management System<br>
+    Academic Year 2026
+</footer>
+
+</body>
+</html>
