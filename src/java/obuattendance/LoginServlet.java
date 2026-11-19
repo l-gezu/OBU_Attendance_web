@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -25,60 +26,51 @@ public class LoginServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        response.setContentType("text/html;charset=UTF-8");
-
-        // Get login form values
         String role = request.getParameter("role");
-
         String username = request.getParameter("username");
-
         String password = request.getParameter("password");
 
         // Validate input
-        if (role == null
-                || username == null
-                || password == null
+        if (role == null || username == null || password == null
                 || role.trim().isEmpty()
                 || username.trim().isEmpty()
                 || password.isEmpty()) {
 
             response.sendRedirect(
-                    request.getContextPath() + "/login.html");
-
+                    request.getContextPath() + "/login.html?error=1");
             return;
         }
 
         role = role.trim();
-
         username = username.trim();
 
         String table;
-
         String usernameColumn;
 
         // Check user role
         if ("admin".equals(role)) {
 
-            table = "Admins";
-
+            table = "admins";
             usernameColumn = "username";
 
         } else if ("lecturer".equals(role)) {
 
-            table = "Lecturers";
-
+            table = "lecturers";
             usernameColumn = "email";
 
         } else {
 
             response.sendRedirect(
-                    request.getContextPath() + "/login.html");
-
+                    request.getContextPath() + "/login.html?error=1");
             return;
         }
 
-        // Database connection
         try (Connection con = DBConnection.getConnection()) {
+
+            if (con == null) {
+                throw new SQLException(
+                        "Database connection failed");
+            }
 
             String sql = "SELECT * FROM " + table
                     + " WHERE " + usernameColumn + " = ?";
@@ -96,37 +88,19 @@ public class LoginServlet extends HttpServlet {
                         response.sendRedirect(
                                 request.getContextPath()
                                 + "/login.html?error=1");
-
                         return;
                     }
 
-                    // Get stored password
                     String storedHash =
                             rs.getString("password_hash");
 
-                    // Get lecturer information
-                    int lecturerId = 0;
-
-                    String lecturerName = null;
-
-                    if ("lecturer".equals(role)) {
-
-                        lecturerId =
-                                rs.getInt("lecturer_id");
-
-                        lecturerName =
-                                rs.getString("full_name");
-                    }
-
-                    boolean passwordCorrect = false;
-
                     boolean isHashed = false;
+                    boolean passwordCorrect = false;
 
                     // Verify password
                     if (storedHash != null
                             && !storedHash.isEmpty()) {
 
-                        // Check password hash format
                         isHashed =
                                 storedHash.split(":", -1).length == 3;
 
@@ -134,28 +108,25 @@ public class LoginServlet extends HttpServlet {
 
                             passwordCorrect =
                                     PasswordUtil.verifyPassword(
-                                            password,
-                                            storedHash);
+                                            password, storedHash);
 
                         } else {
 
-                            // Support old plain-text passwords
                             passwordCorrect =
                                     password.equals(storedHash);
                         }
                     }
 
-                    // Reject incorrect password
+                    // Wrong password
                     if (!passwordCorrect) {
 
                         response.sendRedirect(
                                 request.getContextPath()
                                 + "/login.html?error=1");
-
                         return;
                     }
 
-                    // Upgrade old password to secure hash
+                    // Convert old password to hash
                     if (!isHashed) {
 
                         String newHash =
@@ -170,19 +141,28 @@ public class LoginServlet extends HttpServlet {
                                 con.prepareStatement(updateSql)) {
 
                             update.setString(1, newHash);
-
                             update.setString(2, username);
 
                             update.executeUpdate();
                         }
                     }
 
-                    // Invalidate old session
+                    // Lecturer information
+                    int lecturerId = 0;
+                    String lecturerName = null;
+
+                    if ("lecturer".equals(role)) {
+
+                        lecturerId = rs.getInt("lecturer_id");
+                        lecturerName =
+                                rs.getString("full_name");
+                    }
+
+                    // Destroy old session
                     HttpSession oldSession =
                             request.getSession(false);
 
                     if (oldSession != null) {
-
                         oldSession.invalidate();
                     }
 
@@ -190,35 +170,26 @@ public class LoginServlet extends HttpServlet {
                     HttpSession session =
                             request.getSession(true);
 
-                    // Store session information
                     session.setAttribute("role", role);
+                    session.setAttribute("username", username);
 
-                    session.setAttribute(
-                            "username",
-                            username);
-
-                    // Session timeout: 30 minutes
                     session.setMaxInactiveInterval(30 * 60);
 
-                    // Admin login
+                    // Admin dashboard
                     if ("admin".equals(role)) {
 
                         response.sendRedirect(
                                 request.getContextPath()
                                 + "/admin-dashboard.html");
 
-                    }
+                    } else {
 
-                    // Lecturer login
-                    else {
+                        // Lecturer session
+                        session.setAttribute(
+                                "lecturer_id", lecturerId);
 
                         session.setAttribute(
-                                "lecturer_id",
-                                lecturerId);
-
-                        session.setAttribute(
-                                "lecturer_name",
-                                lecturerName);
+                                "lecturer_name", lecturerName);
 
                         response.sendRedirect(
                                 request.getContextPath()
