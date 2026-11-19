@@ -1,9 +1,12 @@
- package obuattendance;
+
+package obuattendance;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,17 +18,22 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet("/students")
 public class StudentServlet extends HttpServlet {
 
+    private static final long serialVersionUID = 1L;
+
+    // Check whether user is admin or lecturer
     private boolean isLoggedIn(HttpSession session) {
-        return session != null
-                && ("admin".equals(session.getAttribute("role"))
-                || "lecturer".equals(session.getAttribute("role")));
+        return session != null &&
+                ("admin".equals(session.getAttribute("role")) ||
+                 "lecturer".equals(session.getAttribute("role")));
     }
 
+    // Check whether user is admin
     private boolean isAdmin(HttpSession session) {
-        return session != null
-                && "admin".equals(session.getAttribute("role"));
+        return session != null &&
+                "admin".equals(session.getAttribute("role"));
     }
 
+    // DISPLAY STUDENTS
     @Override
     protected void doGet(HttpServletRequest request,
             HttpServletResponse response)
@@ -36,7 +44,8 @@ public class StudentServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (!isLoggedIn(session)) {
-            response.sendRedirect("login.html");
+            response.sendRedirect(
+                    request.getContextPath() + "/login.html");
             return;
         }
 
@@ -44,12 +53,16 @@ public class StudentServlet extends HttpServlet {
 
         try (Connection con = DBConnection.getConnection()) {
 
-            String sql = "SELECT * FROM Students";
+            if (con == null) {
+                throw new SQLException("Database connection failed");
+            }
+
+            String sql = "SELECT * FROM students ORDER BY student_id DESC";
 
             try (PreparedStatement ps = con.prepareStatement(sql);
-                    ResultSet rs = ps.executeQuery()) {
+                 ResultSet rs = ps.executeQuery()) {
 
-                var out = response.getWriter();
+                PrintWriter out = response.getWriter();
 
                 out.println("<!DOCTYPE html>");
                 out.println("<html><head>");
@@ -70,7 +83,7 @@ public class StudentServlet extends HttpServlet {
                 out.println("button,.link{display:inline-block;padding:10px 15px;border:0;border-radius:5px;background:#16804a;color:white;text-decoration:none;cursor:pointer;margin:5px;}");
                 out.println(".delete{background:#b22222;}");
                 out.println(".links{text-align:center;margin-top:20px;}");
-                out.println("@media(max-width:700px){.container{overflow-x:auto;padding:12px;}table{font-size:12px;}th,td{padding:7px;} }");
+                out.println("@media(max-width:700px){.container{overflow-x:auto;padding:12px;}table{font-size:12px;}th,td{padding:7px;}}");
                 out.println("</style>");
 
                 out.println("</head><body>");
@@ -85,12 +98,16 @@ public class StudentServlet extends HttpServlet {
                 out.println("<div class='container'>");
 
                 out.println("<p>Role: "
-                        + session.getAttribute("role") + "</p>");
- out.println("<table>");
-                out.println("<tr><th>Student ID</th>"
-                        + "<th>Student Number</th>"
-                        + "<th>Name</th><th>Department</th>"
-                        + "<th>Year Level</th>");
+                        + escape(String.valueOf(session.getAttribute("role")))
+                        + "</p>");
+
+                out.println("<table>");
+                out.println("<tr>");
+                out.println("<th>Student ID</th>");
+                out.println("<th>Student Number</th>");
+                out.println("<th>Name</th>");
+                out.println("<th>Department</th>");
+                out.println("<th>Year Level</th>");
 
                 if (admin) {
                     out.println("<th>Action</th>");
@@ -98,24 +115,36 @@ public class StudentServlet extends HttpServlet {
 
                 out.println("</tr>");
 
+                boolean found = false;
+
                 while (rs.next()) {
 
+                    found = true;
+
                     String number = rs.getString("student_number");
+                    String fullName = rs.getString("full_name");
+                    String department = rs.getString("department");
 
                     out.println("<tr>");
                     out.println("<td>" + rs.getInt("student_id") + "</td>");
-                    out.println("<td>" + number + "</td>");
-                    out.println("<td>" + rs.getString("full_name") + "</td>");
-                    out.println("<td>" + rs.getString("department") + "</td>");
+                    out.println("<td>" + escape(number) + "</td>");
+                    out.println("<td>" + escape(fullName) + "</td>");
+                    out.println("<td>" + escape(department) + "</td>");
                     out.println("<td>" + rs.getInt("year_level") + "</td>");
 
                     if (admin) {
                         out.println("<td>");
-                        out.println("<form action='students' method='post' "
-                                + "onsubmit=\"return confirm('Delete this student?');\">");
+
+                        out.println("<form action='" +
+                                request.getContextPath() +
+                                "/students' method='post' " +
+                                "onsubmit=\"return confirm('Delete this student?');\">");
+
                         out.println("<input type='hidden' name='action' value='delete'>");
+
                         out.println("<input type='hidden' name='student_number' value='"
-                                + number + "'>");
+                                + escape(number) + "'>");
+
                         out.println("<button class='delete' type='submit'>Delete</button>");
                         out.println("</form>");
                         out.println("</td>");
@@ -124,31 +153,51 @@ public class StudentServlet extends HttpServlet {
                     out.println("</tr>");
                 }
 
-                out.println("</table>");
+                if (!found) {
+                    out.println("<tr><td colspan='" +
+                            (admin ? "6" : "5") +
+                            "'>No students found!</td></tr>");
+                }
 
+                out.println("</table>");
                 out.println("<div class='links'>");
 
                 if (admin) {
-                    out.println("<a class='link' href='add-student.html'>Add Student</a>");
-                    out.println("<a class='link' href='edit-student.html'>Edit Student</a>");
-                    out.println("<a class='link' href='admin-dashboard.html'>Dashboard</a>");
+                    out.println("<a class='link' href='" +
+                            request.getContextPath() +
+                            "/add-student.html'>Add Student</a>");
+
+                    out.println("<a class='link' href='" +
+                            request.getContextPath() +
+                            "/edit-student.html'>Edit Student</a>");
+
+                    out.println("<a class='link' href='" +
+                            request.getContextPath() +
+                            "/admin-dashboard.html'>Dashboard</a>");
                 } else {
-                    out.println("<a class='link' href='lecturer-dashboard.html'>Dashboard</a>");
+                    out.println("<a class='link' href='" +
+                            request.getContextPath() +
+                            "/lecturer-dashboard.html'>Dashboard</a>");
                 }
 
-                out.println("<a class='link' href='logout'>Logout</a>");
-                out.println("</div>");
+                out.println("<a class='link' href='" +
+                        request.getContextPath() +
+                        "/logout'>Logout</a>");
 
+                out.println("</div>");
                 out.println("</div>");
                 out.println("</body></html>");
             }
 
         } catch (Exception e) {
             log("Student list error", e);
-            response.getWriter().println("Database error.");
+            response.sendError(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Unable to load students. Please check server logs.");
         }
     }
 
+    // ADD, UPDATE AND DELETE STUDENTS
     @Override
     protected void doPost(HttpServletRequest request,
             HttpServletResponse response)
@@ -181,80 +230,118 @@ public class StudentServlet extends HttpServlet {
 
         if ("update".equals(action)) {
 
-            sql = "UPDATE Students SET full_name=?, department=?, "
+            sql = "UPDATE students SET full_name=?, department=?, "
                     + "year_level=? WHERE student_number=?";
 
         } else if ("delete".equals(action)) {
 
-            sql = "DELETE FROM Students WHERE student_number=?";
+            sql = "DELETE FROM students WHERE student_number=?";
 
         } else if ("add".equals(action)) {
 
-            sql = "INSERT INTO Students "
+            sql = "INSERT INTO students "
                     + "(student_number, full_name, department, year_level) "
                     + "VALUES (?, ?, ?, ?)";
- } else {
+
+        } else {
             response.sendError(400, "Invalid action.");
             return;
         }
 
-        try (Connection con = DBConnection.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)) {
+        // Validate details for add and update
+        if (!"delete".equals(action)) {
 
-            if ("update".equals(action)) {
+            if (fullName == null || department == null || yearLevel == null ||
+                    fullName.trim().isEmpty() ||
+                    department.trim().isEmpty() ||
+                    yearLevel.trim().isEmpty()) {
 
-                if (fullName == null || department == null
-                        || yearLevel == null
-                        || fullName.trim().isEmpty()
-                        || department.trim().isEmpty()
-                        || yearLevel.trim().isEmpty()) {
-
-                    response.sendError(400, "Missing student details.");
-                    return;
-                }
-
-                ps.setString(1, fullName.trim());
-                ps.setString(2, department.trim());
-                ps.setInt(3, Integer.parseInt(yearLevel));
-                ps.setString(4, studentNumber.trim());
-
-            } else if ("delete".equals(action)) {
-
-                ps.setString(1, studentNumber.trim());
-
-            } else {
-
-                if (fullName == null || department == null
-                        || yearLevel == null
-                        || fullName.trim().isEmpty()
-                        || department.trim().isEmpty()
-                        || yearLevel.trim().isEmpty()) {
-
-                    response.sendError(400, "Missing student details.");
-                    return;
-                }
-
-                ps.setString(1, studentNumber.trim());
-                ps.setString(2, fullName.trim());
-                ps.setString(3, department.trim());
-                ps.setInt(4, Integer.parseInt(yearLevel));
-            }
-
-            int result = ps.executeUpdate();
-
-            if (result == 0) {
-                response.getWriter().println("Student not found!");
+                response.sendError(400, "Missing student details.");
                 return;
             }
-
-            response.sendRedirect("students");
-
-        } catch (NumberFormatException e) {
-            response.sendError(400, "Invalid year level.");
-        } catch (Exception e) {
-            log("Student operation error", e);
-            response.getWriter().println(
-                    "Operation failed. Check server log.");
         }
+
+        int year = 0;
+
+        if (!"delete".equals(action)) {
+
+            try {
+                year = Integer.parseInt(yearLevel.trim());
+
+                if (year < 1 || year > 6) {
+                    response.sendError(400,
+                            "Year level must be between 1 and 6.");
+                    return;
+                }
+
+            } catch (NumberFormatException e) {
+                response.sendError(400, "Invalid year level.");
+                return;
+            }
+        }
+
+        try (Connection con = DBConnection.getConnection()) {
+
+            if (con == null) {
+                throw new SQLException("Database connection failed");
+            }
+
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+
+                if ("update".equals(action)) {
+
+                    ps.setString(1, fullName.trim());
+                    ps.setString(2, department.trim());
+                    ps.setInt(3, year);
+                    ps.setString(4, studentNumber.trim());
+
+                } else if ("delete".equals(action)) {
+
+                    ps.setString(1, studentNumber.trim());
+
+                } else {
+
+                    ps.setString(1, studentNumber.trim());
+                    ps.setString(2, fullName.trim());
+                    ps.setString(3, department.trim());
+                    ps.setInt(4, year);
+                }
+
+                ps.executeUpdate();
+
+                response.sendRedirect(
+                        request.getContextPath() + "/students");
+            }
+
+        } catch (SQLException e) {
+
+            log("Student database operation error", e);
+
+            response.sendError(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Database operation failed. Check server logs.");
+
+        } catch (Exception e) {
+
+            log("Student operation error", e);
+
+            response.sendError(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Student operation failed.");
+        }
+    }
+
+    // HTML OUTPUT ESCAPING
+    private String escape(String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }
