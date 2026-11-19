@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,6 +15,8 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/attendance")
 public class AttendanceServlet extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private boolean isLecturer(HttpSession session) {
         return session != null
@@ -42,13 +45,18 @@ public class AttendanceServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (!isLecturer(session)) {
-            response.sendRedirect("login.html");
+            response.sendRedirect(
+                    request.getContextPath() + "/login.html");
             return;
         }
 
         String contextPath = request.getContextPath();
 
         try (Connection con = DBConnection.getConnection()) {
+
+            if (con == null) {
+                throw new SQLException("Database connection failed.");
+            }
 
             var out = response.getWriter();
 
@@ -60,172 +68,35 @@ public class AttendanceServlet extends HttpServlet {
             out.println("<title>Take Attendance - OBU</title>");
 
             out.println("<style>");
-
-            out.println("* {");
-            out.println("margin: 0;");
-            out.println("padding: 0;");
-            out.println("box-sizing: border-box;");
-            out.println("}");
-
-            out.println("body {");
-            out.println("font-family: Arial, sans-serif;");
-            out.println("background: #f2f5f9;");
-            out.println("min-height: 100vh;");
-            out.println("color: #333;");
-            out.println("}");
-
-            out.println(".header {");
-            out.println("background: linear-gradient(135deg, #123b65, #16804a);");
-            out.println("color: white;");
-            out.println("text-align: center;");
-            out.println("padding: 25px 15px;");
-            out.println("}");
-
-            out.println(".logo {");
-            out.println("width: 85px;");
-            out.println("height: auto;");
-            out.println("margin-bottom: 10px;");
-            out.println("}");
-
-            out.println(".header h1 {");
-            out.println("font-size: 25px;");
-            out.println("margin-bottom: 7px;");
-            out.println("}");
-
-            out.println(".header p {");
-            out.println("font-size: 14px;");
-            out.println("opacity: 0.9;");
-            out.println("}");
-
-            out.println(".container {");
-            out.println("width: 95%;");
-            out.println("max-width: 1100px;");
-            out.println("margin: 30px auto;");
-            out.println("background: white;");
-            out.println("padding: 25px;");
-            out.println("border-radius: 12px;");
-            out.println("box-shadow: 0 4px 15px rgba(0,0,0,0.08);");
-            out.println("}");
-
-            out.println(".title {");
-            out.println("text-align: center;");
-            out.println("color: #123b65;");
-            out.println("font-size: 23px;");
-            out.println("margin-bottom: 10px;");
-            out.println("}");
-
-            out.println(".subtitle {");
-            out.println("text-align: center;");
-            out.println("color: #777;");
-            out.println("margin-bottom: 25px;");
-            out.println("font-size: 14px;");
-            out.println("}");
- out.println(".table-wrapper {");
-            out.println("width: 100%;");
-            out.println("overflow-x: auto;");
-            out.println("}");
-
-            out.println("table {");
-            out.println("width: 100%;");
-            out.println("border-collapse: collapse;");
-            out.println("min-width: 600px;");
-            out.println("}");
-
-            out.println("th {");
-            out.println("background: #123b65;");
-            out.println("color: white;");
-            out.println("padding: 15px;");
-            out.println("text-align: left;");
-            out.println("font-size: 14px;");
-            out.println("}");
-
-            out.println("td {");
-            out.println("padding: 13px 15px;");
-            out.println("border-bottom: 1px solid #e5e9ef;");
-            out.println("font-size: 14px;");
-            out.println("}");
-
-            out.println("tr:hover td {");
-            out.println("background: #f5f9fc;");
-            out.println("}");
-
-            out.println("select {");
-            out.println("padding: 9px 12px;");
-            out.println("border: 1px solid #ccc;");
-            out.println("border-radius: 6px;");
-            out.println("font-size: 14px;");
-            out.println("width: 130px;");
-            out.println("background: white;");
-            out.println("}");
-
-            out.println("select:focus {");
-            out.println("outline: none;");
-            out.println("border-color: #16804a;");
-            out.println("}");
-
-            out.println(".save-btn {");
-            out.println("display: block;");
-            out.println("width: 100%;");
-            out.println("max-width: 250px;");
-            out.println("margin: 25px auto 10px;");
-            out.println("padding: 14px;");
-            out.println("background: #16804a;");
-            out.println("color: white;");
-            out.println("border: none;");
-            out.println("border-radius: 7px;");
-            out.println("font-size: 16px;");
-            out.println("font-weight: bold;");
-            out.println("cursor: pointer;");
-            out.println("}");
-
-            out.println(".save-btn:hover {");
-            out.println("background: #11663b;");
-            out.println("}");
-
-            out.println(".navigation {");
-            out.println("display: flex;");
-            out.println("justify-content: center;");
-            out.println("flex-wrap: wrap;");
-            out.println("gap: 12px;");
-            out.println("margin-top: 25px;");
-            out.println("}");
-
-            out.println(".navigation a {");
-            out.println("text-decoration: none;");
-            out.println("padding: 11px 17px;");
-            out.println("border-radius: 6px;");
-            out.println("background: #123b65;");
-            out.println("color: white;");
-            out.println("font-size: 14px;");
-            out.println("}");
-
-            out.println(".navigation a:hover {");
-            out.println("background: #16804a;");
-            out.println("}");
-
-            out.println(".empty {");
-            out.println("text-align: center;");
-            out.println("padding: 30px;");
-            out.println("color: #777;");
-            out.println("}");
-
-            out.println("footer {");
-            out.println("text-align: center;");
-            out.println("padding: 20px;");
-            out.println("color: #777;");
-            out.println("font-size: 13px;");
-            out.println("}");
-
-            out.println("@media(max-width: 600px) {");
-            out.println(".header h1 { font-size: 20px; }");
-            out.println(".container { padding: 15px; margin: 18px auto; }");
-            out.println(".title { font-size: 20px; }");
-            out.println("}");
-
+            out.println("* { margin: 0; padding: 0; box-sizing: border-box; }");
+            out.println("body { font-family: Arial, sans-serif; background: #f2f5f9; min-height: 100vh; color: #333; }");
+            out.println(".header { background: linear-gradient(135deg, #123b65, #16804a); color: white; text-align: center; padding: 25px 15px; }");
+            out.println(".logo { width: 85px; height: auto; margin-bottom: 10px; }");
+            out.println(".header h1 { font-size: 25px; margin-bottom: 7px; }");
+            out.println(".header p { font-size: 14px; opacity: 0.9; }");
+            out.println(".container { width: 95%; max-width: 1100px; margin: 30px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }");
+            out.println(".title { text-align: center; color: #123b65; font-size: 23px; margin-bottom: 10px; }");
+            out.println(".subtitle { text-align: center; color: #777; margin-bottom: 25px; font-size: 14px; }");
+            out.println(".table-wrapper { width: 100%; overflow-x: auto; }");
+            out.println("table { width: 100%; border-collapse: collapse; min-width: 600px; }");
+            out.println("th { background: #123b65; color: white; padding: 15px; text-align: left; font-size: 14px; }");
+            out.println("td { padding: 13px 15px; border-bottom: 1px solid #e5e9ef; font-size: 14px; }");
+            out.println("tr:hover td { background: #f5f9fc; }");
+            out.println("select { padding: 9px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; width: 130px; background: white; }");
+            out.println("select:focus { outline: none; border-color: #16804a; }");
+ out.println(".save-btn { display: block; width: 100%; max-width: 250px; margin: 25px auto 10px; padding: 14px; background: #16804a; color: white; border: none; border-radius: 7px; font-size: 16px; font-weight: bold; cursor: pointer; }");
+            out.println(".save-btn:hover { background: #11663b; }");
+            out.println(".navigation { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 25px; }");
+            out.println(".navigation a { text-decoration: none; padding: 11px 17px; border-radius: 6px; background: #123b65; color: white; font-size: 14px; }");
+            out.println(".navigation a:hover { background: #16804a; }");
+            out.println(".empty { text-align: center; padding: 30px; color: #777; }");
+            out.println("footer { text-align: center; padding: 20px; color: #777; font-size: 13px; }");
+            out.println("@media(max-width: 600px) { .header h1 { font-size: 20px; } .container { padding: 15px; margin: 18px auto; } .title { font-size: 20px; } }");
             out.println("</style>");
             out.println("</head>");
             out.println("<body>");
- out.println("<header class='header'>");
+
+            out.println("<header class='header'>");
             out.println("<img src='" + contextPath
                     + "/images/obu-logo.png' alt='OBU Logo' class='logo'>");
             out.println("<h1>ODA BULTUM UNIVERSITY</h1>");
@@ -233,7 +104,6 @@ public class AttendanceServlet extends HttpServlet {
             out.println("</header>");
 
             out.println("<main class='container'>");
-
             out.println("<h2 class='title'>STUDENT ATTENDANCE</h2>");
             out.println("<p class='subtitle'>Select attendance status for each student</p>");
 
@@ -242,7 +112,6 @@ public class AttendanceServlet extends HttpServlet {
 
             out.println("<div class='table-wrapper'>");
             out.println("<table>");
-
             out.println("<tr>");
             out.println("<th>ID</th>");
             out.println("<th>Student Number</th>");
@@ -251,39 +120,33 @@ public class AttendanceServlet extends HttpServlet {
             out.println("</tr>");
 
             String sql = "SELECT student_id, student_number, full_name "
-                    + "FROM Students ORDER BY student_id";
+                    + "FROM students ORDER BY student_id";
 
             int studentCount = 0;
 
             try (PreparedStatement ps = con.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
+                    ResultSet rs = ps.executeQuery()) {
 
                 while (rs.next()) {
 
                     studentCount++;
-
                     int id = rs.getInt("student_id");
 
                     out.println("<tr>");
-
                     out.println("<td>" + id + "</td>");
-
                     out.println("<td>"
                             + escapeHtml(rs.getString("student_number"))
                             + "</td>");
-
                     out.println("<td>"
                             + escapeHtml(rs.getString("full_name"))
                             + "</td>");
 
                     out.println("<td>");
-
                     out.println("<select name='status_" + id + "' required>");
                     out.println("<option value=''>Select Status</option>");
-                    out.println("<option value='Présent'>Present</option>");
+                    out.println("<option value='Present'>Present</option>");
                     out.println("<option value='Absent'>Absent</option>");
                     out.println("</select>");
-
                     out.println("</td>");
                     out.println("</tr>");
                 }
@@ -296,37 +159,27 @@ public class AttendanceServlet extends HttpServlet {
                 out.println("<p class='empty'>No students found in the database.</p>");
             }
 
-            out.println("<button type='submit' class='save-btn'>");
-            out.println("Save Attendance");
-            out.println("</button>");
-
+            out.println("<button type='submit' class='save-btn'>Save Attendance</button>");
             out.println("</form>");
-
-            out.println("<div class='navigation'>");
-
+ out.println("<div class='navigation'>");
             out.println("<a href='" + contextPath
                     + "/attendance-report'>View Attendance Report</a>");
-
             out.println("<a href='" + contextPath
                     + "/lecturer-dashboard.html'>Back to Dashboard</a>");
-
             out.println("<a href='" + contextPath
                     + "/logout'>Logout</a>");
-
             out.println("</div>");
 
             out.println("</main>");
-
-            out.println("<footer>");
-            out.println("OBU Attendance Management System | Academic Year 2026");
-            out.println("</footer>");
-
+            out.println("<footer>OBU Attendance Management System | Academic Year 2026</footer>");
             out.println("</body>");
             out.println("</html>");
 
         } catch (Exception e) {
             log("Attendance page error", e);
-            response.getWriter().println("Database error.");
+            response.sendError(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Database error while loading attendance page.");
         }
     }
 
@@ -340,42 +193,49 @@ public class AttendanceServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (!isLecturer(session)) {
-            response.sendRedirect("login.html");
+            response.sendRedirect(
+                    request.getContextPath() + "/login.html");
             return;
         }
 
-        Integer lecturerId =
-                (Integer) session.getAttribute("lecturer_id");
- if (lecturerId == null) {
-            response.sendRedirect("login.html");
+        Object lecturerObject = session.getAttribute("lecturer_id");
+
+        if (!(lecturerObject instanceof Integer)) {
+            response.sendRedirect(
+                    request.getContextPath() + "/login.html");
             return;
         }
+
+        Integer lecturerId = (Integer) lecturerObject;
 
         try (Connection con = DBConnection.getConnection()) {
+
+            if (con == null) {
+                throw new SQLException("Database connection failed.");
+            }
 
             con.setAutoCommit(false);
 
             try {
                 String studentSql =
-                        "SELECT student_id FROM Students";
+                        "SELECT student_id FROM students";
 
                 String updateSql =
-                        "UPDATE Attendance "
-                        + "SET lecturer_id=?, status=? "
+                        "UPDATE attendance SET lecturer_id=?, status=? "
                         + "WHERE student_id=? "
                         + "AND attendance_date=CURRENT_DATE";
 
                 String insertSql =
-                        "INSERT INTO Attendance "
+                        "INSERT INTO attendance "
                         + "(student_id, lecturer_id, attendance_date, status) "
                         + "VALUES (?, ?, CURRENT_DATE, ?)";
 
                 try (PreparedStatement studentPs =
                             con.prepareStatement(studentSql);
-                     ResultSet rs = studentPs.executeQuery();
-                     PreparedStatement updatePs =
+                        ResultSet rs = studentPs.executeQuery();
+                        PreparedStatement updatePs =
                             con.prepareStatement(updateSql);
-                     PreparedStatement insertPs =
+                        PreparedStatement insertPs =
                             con.prepareStatement(insertSql)) {
 
                     while (rs.next()) {
@@ -386,7 +246,7 @@ public class AttendanceServlet extends HttpServlet {
                                 "status_" + studentId);
 
                         if (status == null
-                                || (!status.equals("Présent")
+                                || (!status.equals("Present")
                                 && !status.equals("Absent"))) {
                             continue;
                         }
@@ -398,11 +258,9 @@ public class AttendanceServlet extends HttpServlet {
                         int updated = updatePs.executeUpdate();
 
                         if (updated == 0) {
-
                             insertPs.setInt(1, studentId);
                             insertPs.setInt(2, lecturerId);
                             insertPs.setString(3, status);
-
                             insertPs.executeUpdate();
                         }
                     }
@@ -411,20 +269,17 @@ public class AttendanceServlet extends HttpServlet {
                 con.commit();
 
             } catch (Exception e) {
-
                 con.rollback();
                 throw e;
             }
-
-            response.sendRedirect("attendance-report");
+ response.sendRedirect(
+                    request.getContextPath() + "/attendance-report");
 
         } catch (Exception e) {
-
             log("Attendance saving error", e);
-
-            response.setContentType("text/html;charset=UTF-8");
-            response.getWriter().println(
-                    "Attendance saving failed. Check server log.");
+            response.sendError(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Attendance saving failed. Please check server log.");
         }
     }
 }
